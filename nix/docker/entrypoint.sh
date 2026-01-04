@@ -25,6 +25,13 @@ fi
 
 mkdir -p "$workspace_dir" "$log_dir" "$secrets_dir"
 
+if [ -z "${SSL_CERT_FILE:-}" ]; then
+  export SSL_CERT_FILE="/etc/ssl/certs/ca-bundle.crt"
+fi
+if [ -z "${NODE_EXTRA_CA_CERTS:-}" ]; then
+  export NODE_EXTRA_CA_CERTS="/etc/ssl/certs/ca-bundle.crt"
+fi
+
 token_file="$secrets_dir/telegram-bot-token"
 umask 077
 printf "%s" "$bot_token" > "$token_file"

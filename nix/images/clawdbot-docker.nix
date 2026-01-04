@@ -28,6 +28,8 @@ let
       "CLAWDBOT_DATA_DIR=/data"
       "CLAWDBOT_GATEWAY_PORT=18789"
       "CLAWDBOT_TELEGRAM_REQUIRE_MENTION=true"
+      "SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt"
+      "NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-bundle.crt"
     ];
   };
   image = pkgs.dockerTools.buildLayeredImage {
