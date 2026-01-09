@@ -9,6 +9,37 @@ log() {
   printf '>> %s\n' "$*"
 }
 
+upstream_checks_green() {
+  local sha="$1"
+  local checks_json
+  checks_json=$(gh api "/repos/clawdbot/clawdbot/commits/${sha}/check-runs?per_page=100" 2>/dev/null || true)
+  if [[ -z "$checks_json" ]]; then
+    log "No check runs found for $sha"
+    return 1
+  fi
+
+  local relevant_count
+  relevant_count=$(printf '%s' "$checks_json" | jq '[.check_runs[] | select(.name | test("windows"; "i") | not)] | length')
+  if [[ "$relevant_count" -eq 0 ]]; then
+    log "No non-windows check runs found for $sha"
+    return 1
+  fi
+
+  local failing_count
+  failing_count=$(
+    printf '%s' "$checks_json" | jq '[.check_runs[]
+      | select(.name | test("windows"; "i") | not)
+      | select(.status != "completed" or (.conclusion != "success" and .conclusion != "skipped"))
+    ] | length'
+  )
+  if [[ "$failing_count" -ne 0 ]]; then
+    log "Non-windows checks not green for $sha"
+    return 1
+  fi
+
+  return 0
+}
+
 if ! command -v jq >/dev/null 2>&1; then
   echo "jq is required but not installed." >&2
   exit 1
@@ -28,6 +59,9 @@ fi
 selected_sha=""
 selected_hash=""
 for sha in "${candidate_shas[@]}"; do
+  if ! upstream_checks_green "$sha"; then
+    continue
+  fi
   log "Testing upstream SHA: $sha"
   source_url="https://github.com/clawdbot/clawdbot/archive/${sha}.tar.gz"
   log "Prefetching source tarball"
