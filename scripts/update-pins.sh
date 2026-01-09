@@ -52,14 +52,14 @@ if [[ -z "$release_json" ]]; then
   echo "Failed to fetch release metadata" >&2
   exit 1
 fi
-release_tag=$(printf '%s' "$release_json" | jq -r '[.[] | select(.assets[]?.name | test("^Clawdis-.*\\.zip$"))][0].tag_name // empty')
+release_tag=$(printf '%s' "$release_json" | jq -r '[.[] | select([.assets[]?.name | (test("^Clawdis-.*\\.zip$") and (test("dSYM") | not))] | any)][0].tag_name // empty')
 if [[ -z "$release_tag" ]]; then
   echo "Failed to resolve a release tag with a Clawdis app asset" >&2
   exit 1
 fi
 log "Latest app release tag with asset: $release_tag"
 
-app_url=$(printf '%s' "$release_json" | jq -r '[.[] | select(.assets[]?.name | test("^Clawdis-.*\\.zip$"))][0].assets[] | select(.name | test("^Clawdis-.*\\.zip$")) | .browser_download_url' | head -n 1 || true)
+app_url=$(printf '%s' "$release_json" | jq -r '[.[] | select([.assets[]?.name | (test("^Clawdis-.*\\.zip$") and (test("dSYM") | not))] | any)][0].assets[] | select(.name | (test("^Clawdis-.*\\.zip$") and (test("dSYM") | not))) | .browser_download_url' | head -n 1 || true)
 if [[ -z "$app_url" ]]; then
   echo "Failed to resolve Clawdis app asset URL from latest release" >&2
   exit 1
@@ -100,7 +100,11 @@ if ! nix build .#clawdbot-gateway --accept-flake-config >"$build_log" 2>&1; then
     exit 1
   fi
   perl -0pi -e "s|pnpmDepsHash = \"[^\"]+\";|pnpmDepsHash = \"${pnpm_hash}\";|" "$source_file"
-  nix build .#clawdbot-gateway --accept-flake-config
+  if ! nix build .#clawdbot-gateway --accept-flake-config >"$build_log" 2>&1; then
+    cat "$build_log" >&2
+    rm -f "$build_log"
+    exit 1
+  fi
 fi
 rm -f "$build_log"
 
