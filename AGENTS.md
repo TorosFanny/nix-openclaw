@@ -11,11 +11,26 @@ We’re **not accepting PRs** from non-maintainers. If your handle is not in **M
 Source: https://github.com/orgs/openclaw/people
 
 - @Asleep123
+- @badlogic
+- @bjesuiter
+- @christianklotz
 - @cpojer
+- @Evizero
+- @gumadeiras
+- @joshp123
+- @mbelinky
+- @mukhtharcm
+- @obviyus
+- @onutc
+- @pasogott
 - @sebslight
+- @sergiopesch
 - @shakkernerd
+- @steipete
+- @Takhoffman
 - @thewilloftheshadow
 - @tyler6204
+- @vignesh07
 
 Single source of truth for product direction: `README.md`.
 
