@@ -33,13 +33,19 @@ openclaw_bin = machine.succeed(
 if not openclaw_bin:
     raise Exception(f"failed to locate openclaw binary from wrapper: {gateway_wrapper}")
 
+openclaw_bin_real = machine.succeed(
+    f"readlink -f {openclaw_bin} || readlink {openclaw_bin}"
+).strip()
+if not openclaw_bin_real:
+    raise Exception(f"failed to resolve openclaw binary: {openclaw_bin}")
+
 node_bin = machine.succeed(
-    f"grep -o '/nix/store/[^\" ]*/bin/node' {openclaw_bin} | head -n 1"
+    f"grep -o '/nix/store/[^\" ]*/bin/node' {openclaw_bin_real} | head -n 1"
 ).strip()
 if not node_bin:
-    raise Exception(f"failed to locate node binary from wrapper: {openclaw_bin}")
+    raise Exception(f"failed to locate node binary from wrapper: {openclaw_bin_real}")
 
-openclaw_root = os.path.dirname(os.path.dirname(openclaw_bin))
+openclaw_root = os.path.dirname(os.path.dirname(openclaw_bin_real))
 openclaw_lib = os.path.join(openclaw_root, "lib", "openclaw")
 openclaw_node_modules = os.path.join(openclaw_lib, "node_modules")
 probe_env = (
@@ -52,6 +58,8 @@ def run_probe(label, command):
         machine.succeed(command)
     except Exception:
         machine.succeed(f"echo 'fail-fast probe: {label}'")
+        machine.succeed(f"echo 'openclaw_bin: {openclaw_bin}'")
+        machine.succeed(f"echo 'openclaw_bin_real: {openclaw_bin_real}'")
         machine.succeed(f"ls -la {openclaw_lib} || true")
         machine.succeed(f"ls -la {openclaw_node_modules}/@mariozechner || true")
         machine.succeed(
