@@ -25,10 +25,10 @@ try:
     machine.wait_for_open_port(18999)
 except Exception:
     machine.succeed(
-        f"su - alice -c '{user_env} systemctl --user status openclaw-gateway.service --no-pager -n 200 1>&2' || true"
+        f"su - alice -c '{user_env} systemctl --user status openclaw-gateway.service --no-pager -n 200 2>&1 > /tmp/openclaw/systemctl-status.txt' || true"
     )
     machine.succeed(
-        "journalctl --user -u openclaw-gateway.service --no-pager -n 80 -o cat 1>&2 || true"
+        "journalctl --user -u openclaw-gateway.service --no-pager -n 200 -o cat 2>&1 > /tmp/openclaw/journalctl.txt || true"
     )
     machine.succeed("coredumpctl info --no-pager | tail -n 200 >&2 || true")
     machine.succeed("ls -la /tmp/openclaw 1>&2 || true")
@@ -43,4 +43,6 @@ except Exception:
     )
     machine.succeed("sed -n '1,200p' /tmp/openclaw/systemctl-unit.txt >&2 || true")
     machine.succeed("wc -c /tmp/openclaw/systemctl-unit.txt >&2 || true")
+    machine.succeed("tail -n 40 /tmp/openclaw/systemctl-status.txt >&2 || true")
+    machine.succeed("tail -n 40 /tmp/openclaw/journalctl.txt >&2 || true")
     raise
