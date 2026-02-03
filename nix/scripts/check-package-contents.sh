@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 if [ -z "${OPENCLAW_GATEWAY:-}" ]; then
   echo "OPENCLAW_GATEWAY is not set" >&2

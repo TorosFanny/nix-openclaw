@@ -106,6 +106,6 @@ stdenv.mkDerivation {
   };
 
   doCheck = true;
-  checkPhase = "${../scripts/check-config-validity.mjs}";
+  checkPhase = "${nodejs_22}/bin/node ${../scripts/check-config-validity.mjs}";
   installPhase = "${../scripts/empty-install.sh}";
 }
